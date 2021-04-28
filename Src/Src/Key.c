@@ -106,7 +106,7 @@ unsigned char zlg7289_key(void)
 void KeyLed_IO_Config(void)
 {
     GPIO_InitTypeDef GPIO_InitStructure;
-#if 0
+#if 1
     /* 设置7289*/
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOC | RCC_APB2Periph_GPIOD, ENABLE);
     GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_10 | GPIO_Pin_12 | GPIO_Pin_14;
@@ -134,13 +134,6 @@ void KeyLed_IO_Config(void)
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
     GPIO_Init(GPIOD, &GPIO_InitStructure);
 #endif
-    // LED  595的R、S、L
-    // 74HC595  PD11--STCP   PD15--SHCP   PD13--DATA
-    // GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_11 | GPIO_Pin_15 | GPIO_Pin_13;
-    // GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
-    // GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_Out_OD;
-    // GPIO_Init(GPIOD, &GPIO_InitStructure);
-
     ZLG7289_init();
 }
 
@@ -246,25 +239,150 @@ void Keyfunction(u8 KeyID)
 {
     switch (KeyID)
     {
-        case 0x00:  //数字1按键
+        case 0x00:  //自动按键
+        {
+            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
+            {
+                if (System.SystemInfo.BroadcastType == 1)
+                {
+                    CAN_SendSetVoiceCMD(0x06, 0x00, 0x00);
+                }
+                else
+                {
+                    CAN_SendSetVoiceCMD(0x08, 0x00, 0x00);
+                }
+            }
+        }
+        break;
+        case 0x01:  //对讲按键
+        {
+            if (System.SystemInfo.PauseStatus == 1)
+            {
+                if ((System.SystemInfo.BroadcastMode != 0xA1) && (System.SystemInfo.BroadcastMode != 0xA2))
+                {
+                    if (System.Run.AlarmTalk == 2)
+                    {
+                        System.Run.AlarmTalk = 0;
+                        CAN_SendAlarmCMD(0x03, System.SystemInfo.BaoJingCheXiangID[0]);
+                        DecreAlarmID(System.SystemInfo.BaoJingCheXiangID[0]);
+                        System.SystemInfo.KeyLedStatus &= ~KEY5LED;
+
+                        GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
+                    }
+
+                    if (System.Run.DriverTalk == 0)
+                    {
+                        System.Run.DriverTalk = 1;
+                        CAN_SendTalkCMD(0x02);
+
+                        System.SystemInfo.KeyLedStatus |= KEY3LED;
+                        GPIO_SetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
+                    }
+                    else if (System.Run.DriverTalk == 1)
+                    {
+                        System.Run.DriverTalk = 0;
+                        CAN_SendTalkCMD(0x03);
+
+                        System.SystemInfo.KeyLedStatus &= ~KEY3LED;
+                        GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
+                    }
+                }
+            }
+        }
+        break;
+        case 0x02:  //报警按键
+        {
+            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
+            {
+                if ((System.SystemInfo.BroadcastMode != 0xA1) && (System.SystemInfo.BroadcastMode != 0xA2))
+                {
+                    if (System.SystemInfo.AlarmTotal)
+                    {
+                        if (System.Run.AlarmTalk == 1)
+                        {
+                            CancelInterCom();
+
+                            System.Run.AlarmTalk = 2;
+
+                            CAN_SendAlarmCMD(0x02, System.SystemInfo.BaoJingCheXiangID[0]);
+                            TIM4_Close();
+                            GPIO_ResetBits(GPIOD, GPIO_Pin_3);
+                            System.SystemInfo.KeyLedStatus |= KEY5LED;
+
+                            GPIO_SetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
+                        }
+                        else if (System.Run.AlarmTalk == 2)
+                        {
+                            System.Run.AlarmTalk = 0;
+                            CAN_SendAlarmCMD(0x03, System.SystemInfo.BaoJingCheXiangID[0]);
+                            DecreAlarmID(System.SystemInfo.BaoJingCheXiangID[0]);
+                            System.SystemInfo.KeyLedStatus &= ~KEY5LED;
+
+                            GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
+                            KeepInterCom();
+                        }
+                    }
+                }
+            }
+        }
+        break;
+        case 0x08:  //开始按键
+        {
+            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
+            {
+                CAN_SendStartStopCMD(0x01);
+            }
+        }
+        break;
+        case 0x09:  //停止按键
+        {
+            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
+            {
+                CAN_SendStartStopCMD(0x00);
+            }
+        }
+        break;
+        case 0x0A:  //监听按键
+        {
+        }
+        break;
+        case 0x0B:  //主控按键
+        {
+            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
+            {
+                CAN_SendZhuBeiCMD(0x00, (System.SystemInfo.Matser == 1) ? 1 : 6, 0x00, 0x00, (System.SystemInfo.Matser == 1) ? 6 : 1, 0x00, 0x00);
+            }
+        }
+        break;
+        case 0x0C:  //静音按键
+        {
+        }
+        break;
+        case 0x10:  //数字1按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(1);
             }
-            break;
-        case 0x01:  //数字2按键
+        }
+        break;
+        case 0x11:  //数字2按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(2);
             }
-            break;
-        case 0x02:  //数字3按键
+        }
+        break;
+        case 0x12:  //数字3按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(3);
             }
-            break;
-        case 0x03:  //上/下按键
+        }
+        break;
+        case 0x13:  //上/下按键
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
@@ -273,7 +391,7 @@ void Keyfunction(u8 KeyID)
             }
         }
         break;
-        case 0x04:  //起点按键
+        case 0x14:  //起点按键
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
@@ -289,6 +407,7 @@ void Keyfunction(u8 KeyID)
                     {
                         System.Run.TIM2Flag = 2;
                         TIM2_Open();
+                        Station = System.Run.KEYSelect;
                     }
                 }
                 else
@@ -312,30 +431,38 @@ void Keyfunction(u8 KeyID)
             }
         }
         break;
-        case 0x05:  //数字4按键
+        case 0x18:  //数字4按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(4);
             }
-            break;
-        case 0x06:  //数字5按键
+        }
+        break;
+        case 0x19:  //数字5按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(5);
             }
-            break;
-        case 0x07:  //数字6按键
+        }
+        break;
+        case 0x1A:  //数字6按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(6);
             }
-            break;
-        case 0x08:  //快/慢按键
+        }
+        break;
+        case 0x1B:  //快/慢按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
             }
-            break;
-        case 0x09:  //终点按键
+        }
+        break;
+        case 0x1C:  //终点按键
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
@@ -351,6 +478,7 @@ void Keyfunction(u8 KeyID)
                     {
                         System.Run.TIM2Flag = 3;
                         TIM2_Open();
+                        Station = System.Run.KEYSelect;
                     }
                 }
                 else
@@ -374,25 +502,31 @@ void Keyfunction(u8 KeyID)
             }
         }
         break;
-        case 0x0A:  //数字7按键
+        case 0x20:  //数字7按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(7);
             }
-            break;
-        case 0x0B:  //数字8按键
+        }
+        break;
+        case 0x21:  //数字8按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(8);
             }
-            break;
-        case 0x0C:  //数字9按键
+        }
+        break;
+        case 0x22:  //数字9按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(9);
             }
-            break;
-        case 0x0D:  // F功能键
+        }
+        break;
+        case 0x23:  // F功能键
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
@@ -436,7 +570,7 @@ void Keyfunction(u8 KeyID)
             }
         }
         break;
-        case 0x0E:  //越站按键
+        case 0x24:  //越站按键
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
@@ -521,157 +655,44 @@ void Keyfunction(u8 KeyID)
             }
         }
         break;
-        case 0x0F:  //↑按键
+        case 0x28:  //↑按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 Up();
             }
-            break;
-        case 0x10:  //数字0按键
+        }
+        break;
+        case 0x29:  //数字0按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 ShowNum(0);
             }
-            break;
-        case 0x11:  //↓按键
+        }
+        break;
+        case 0x2A:  //↓按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 Down();
             }
-            break;
-        case 0x12:  //取消按键
+        }
+        break;
+        case 0x2B:  //取消按键
+        {
             if (System.SystemInfo.PauseStatus == 1)
             {
                 Cancel();
             }
-            break;
-        case 0x13:  //确认按键
+        }
+        break;
+        case 0x2C:  //确认按键
+        {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
                 OK();
             }
-            break;
-        case 0x14:  //自动按键
-            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
-            {
-                if (System.SystemInfo.BroadcastType == 1)
-                {
-                    CAN_SendSetVoiceCMD(0x06, 0x00, 0x00);
-                }
-                else
-                {
-                    CAN_SendSetVoiceCMD(0x08, 0x00, 0x00);
-                }
-            }
-            break;
-        case 0x16:  //对讲按键
-        {
-            if (System.SystemInfo.PauseStatus == 1)
-            {
-                if ((System.SystemInfo.BroadcastMode != 0xA1) && (System.SystemInfo.BroadcastMode != 0xA2))
-                {
-                    if (System.Run.AlarmTalk == 2)
-                    {
-                        System.Run.AlarmTalk = 0;
-                        CAN_SendAlarmCMD(0x03, System.SystemInfo.BaoJingCheXiangID[0]);
-                        DecreAlarmID(System.SystemInfo.BaoJingCheXiangID[0]);
-                        System.SystemInfo.KeyLedStatus &= ~KEY5LED;
-
-                        GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
-                    }
-
-                    if (System.Run.DriverTalk == 0)
-                    {
-                        System.Run.DriverTalk = 1;
-                        CAN_SendTalkCMD(0x02);
-
-                        System.SystemInfo.KeyLedStatus |= KEY3LED;
-                        GPIO_SetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
-                    }
-                    else if (System.Run.DriverTalk == 1)
-                    {
-                        System.Run.DriverTalk = 0;
-                        CAN_SendTalkCMD(0x03);
-
-                        System.SystemInfo.KeyLedStatus &= ~KEY3LED;
-                        GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
-                    }
-                }
-            }
-        }
-        break;
-        case 0x17:  //报警按键
-        {
-            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
-            {
-                if ((System.SystemInfo.BroadcastMode != 0xA1) && (System.SystemInfo.BroadcastMode != 0xA2))
-                {
-                    if (System.SystemInfo.AlarmTotal)
-                    {
-                        if (System.Run.AlarmTalk == 1)
-                        {
-                            CancelInterCom();
-
-                            System.Run.AlarmTalk = 2;
-
-                            CAN_SendAlarmCMD(0x02, System.SystemInfo.BaoJingCheXiangID[0]);
-                            TIM4_Close();
-                            GPIO_ResetBits(GPIOD, GPIO_Pin_3);
-                            System.SystemInfo.KeyLedStatus |= KEY5LED;
-
-                            GPIO_SetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
-                        }
-                        else if (System.Run.AlarmTalk == 2)
-                        {
-                            System.Run.AlarmTalk = 0;
-                            CAN_SendAlarmCMD(0x03, System.SystemInfo.BaoJingCheXiangID[0]);
-                            DecreAlarmID(System.SystemInfo.BaoJingCheXiangID[0]);
-                            System.SystemInfo.KeyLedStatus &= ~KEY5LED;
-
-                            GPIO_ResetBits(GPIOB, GPIO_Pin_8 | GPIO_Pin_9);
-                            KeepInterCom();
-                        }
-                    }
-                }
-            }
-        }
-        break;
-        // case 0x03:  //复位按键
-        // {
-        //     __set_FAULTMASK(1);
-        //     NVIC_SystemReset();
-        // }
-        // break;
-        case 0x19:  //开始按键
-        {
-            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
-            {
-                CAN_SendStartStopCMD(0x01);
-            }
-        }
-        break;
-        case 0x20:  //停止按键
-        {
-            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
-            {
-                CAN_SendStartStopCMD(0x00);
-            }
-        }
-        break;
-        case 0x21:  //监听按键
-        {
-        }
-        break;
-        case 0x22:  //主控按键
-        {
-            if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
-            {
-                CAN_SendZhuBeiCMD(0x00, (System.SystemInfo.Matser == 1) ? 1 : 6, 0x00, 0x00, (System.SystemInfo.Matser == 1) ? 6 : 1, 0x00, 0x00);
-            }
-        }
-        break;
-        case 0x23:  //静音按键
-        {
         }
         break;
         default:
@@ -695,35 +716,27 @@ void ShowNum(u8 Num)
                     Station = (Station * 10 + Num) % 100;
                     if ((Station <= MAXSTA) && (Station > 0))
                     {
-                        System.Run.TmpNowStation = Station;
+                        System.Run.KEYSelect = Station;
                     }
                 }
                 break;
                 case 2:  //起点站
                 {
-                    System.Run.KEYSelect = (System.Run.KEYSelect * 10 + Num) % 100;
-                    if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
+                    Station = (Station * 10 + Num) % 100;
+
+                    if ((Station <= MAXSTA) && (Station > 0))
                     {
-                        LCD_PutCHString(56, 0, CHzm[System.Run.KEYSelect - 1], 1);
-                    }
-                    else
-                    {
-                        LCD_PutCHString(56, 0, Number[System.Run.KEYSelect], 1);
-                        LCD_PutCHString(72, 0, CHinf[7], 1);
+                        System.Run.KEYSelect = Station;
                     }
                 }
                 break;
                 case 4:  //终点站
                 {
-                    System.Run.KEYSelect = (System.Run.KEYSelect * 10 + Num) % 100;
-                    if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
+                    Station = (Station * 10 + Num) % 100;
+
+                    if ((Station <= MAXSTA) && (Station > 0))
                     {
-                        LCD_PutCHString(56, 0, CHzm[System.Run.KEYSelect - 1], 1);
-                    }
-                    else
-                    {
-                        LCD_PutCHString(56, 0, Number[System.Run.KEYSelect], 1);
-                        LCD_PutCHString(72, 0, CHinf[7], 1);
+                        System.Run.KEYSelect = Station;
                     }
                 }
                 default:
@@ -879,21 +892,22 @@ void Up(void)
                 case 0xFF:
                 {
                     System.Screen.FuScreen = 0xFF;
-                    if (System.Run.TmpNowStation < MAXSTA)
+                    if (System.Run.KEYSelect < MAXSTA)
                     {
-                        System.Run.TmpNowStation++;
+                        System.Run.KEYSelect++;
                     }
                     else
                     {
-                        System.Run.TmpNowStation = 1;
+                        System.Run.KEYSelect = 1;
                     }
 
                     if (!System.Run.TIM2Flag)
                     {
                         System.Run.TIM2Flag = 1;
                         TIM2_Open();
-                        Station = System.Run.TmpNowStation;
                     }
+
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 case 2:  //起点站
@@ -906,6 +920,7 @@ void Up(void)
                     {
                         System.Run.KEYSelect = 1;
                     }
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 case 4:  //终点站
@@ -918,6 +933,7 @@ void Up(void)
                     {
                         System.Run.KEYSelect = 1;
                     }
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 default:
@@ -1094,21 +1110,21 @@ void Down(void)
                 case 0xFF:
                 {
                     System.Screen.FuScreen = 0xFF;
-                    if (System.Run.TmpNowStation > 1)
+                    if (System.Run.KEYSelect > 1)
                     {
-                        System.Run.TmpNowStation--;
+                        System.Run.KEYSelect--;
                     }
                     else
                     {
-                        System.Run.TmpNowStation = MAXSTA;
+                        System.Run.KEYSelect = MAXSTA;
                     }
 
                     if (!System.Run.TIM2Flag)
                     {
                         System.Run.TIM2Flag = 1;
                         TIM2_Open();
-                        Station = System.Run.TmpNowStation;
                     }
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 case 2:  //起点站
@@ -1121,6 +1137,7 @@ void Down(void)
                     {
                         System.Run.KEYSelect = MAXSTA;
                     }
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 case 4:  //终点站
@@ -1133,6 +1150,7 @@ void Down(void)
                     {
                         System.Run.KEYSelect = MAXSTA;
                     }
+                    Station = System.Run.KEYSelect;
                 }
                 break;
                 default:
@@ -1473,11 +1491,11 @@ void OK(void)
                 case 0:
                 case 0xFF:
                 {
-                    if (System.Run.TmpNowStation != System.SystemInfo.NowStation)
+                    if (System.Run.KEYSelect != System.SystemInfo.NowStation)
                     {
-                        if ((System.Run.TmpNowStation <= MAXSTA) && (System.Run.TmpNowStation > 0))
+                        if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
                         {
-                            CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.SystemInfo.EndStation, System.Run.TmpNowStation,
+                            CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.SystemInfo.EndStation, System.Run.KEYSelect,
                                                 System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
 
                             System.Screen.MainScreen = 0;
@@ -1489,7 +1507,8 @@ void OK(void)
                                 TIM2_Close();
                             }
 
-                            System.SystemInfo.NowStation = System.Run.TmpNowStation;
+                            System.SystemInfo.NowStation = System.Run.KEYSelect;
+
                             Images(4, 2, 120, 4, CHzm[System.SystemInfo.NowStation], 360);
                             LCD_PutCHString(88, 48, Number[System.SystemInfo.NowStation], 0);
                         }
@@ -1737,6 +1756,12 @@ void OK(void)
                 case 0xFF:
                 {
                     System.Screen.FuScreen = 0xFF;
+
+                    System.Screen.MainScreen = 0;
+                    System.Screen.FuScreen   = 0;
+
+                    clear(0, 0, 127, 63);
+                    LCD_DIS_MAIN();
                 }
                 break;
                 case 1:
@@ -1753,10 +1778,16 @@ void OK(void)
 
                     CAN_SendYueZhanCMD(Data[0], Data[1], Data[2], Data[3], Data[4], Data[5], Data[6], 0x00);
 
+                    if (System.Run.TIM2Flag)
+                    {
+                        System.Run.TIM2Flag = 0;
+                        TIM2_Close();
+                    }
+
                     System.Screen.MainScreen = 0;
                     System.Screen.FuScreen   = 0;
 
-                    clear(0, 0, 192, 8);
+                    clear(0, 0, 127, 63);
                     LCD_DIS_MAIN();
                 }
                 break;
@@ -1775,10 +1806,16 @@ void OK(void)
 
                     CAN_SendYueZhanCMD(Data[0], Data[1], Data[2], Data[3], Data[4], Data[5], Data[6], 0x00);
 
+                    if (System.Run.TIM2Flag)
+                    {
+                        System.Run.TIM2Flag = 0;
+                        TIM2_Close();
+                    }
+
                     System.Screen.MainScreen = 0;
                     System.Screen.FuScreen   = 0;
 
-                    clear(0, 0, 192, 8);
+                    clear(0, 0, 127, 63);
                     LCD_DIS_MAIN();
                 }
                 break;

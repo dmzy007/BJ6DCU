@@ -12,7 +12,6 @@ int main(void)
     {
         IWDG_ReloadCounter();
 
-        KeyRefeshLed(System.SystemInfo.KeyLedStatus);
         if ((GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_4) == 0) || (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_5) == 0))
         {
             if (GPIO_ReadInputDataBit(GPIOE, GPIO_Pin_4) == 0)

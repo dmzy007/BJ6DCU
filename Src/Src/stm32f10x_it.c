@@ -208,8 +208,8 @@ void TIM2_IRQHandler(void)
 
             if (System.Run.TIM2Flag == 1)
             {
-                Images(4, 2, 120, 4, CHzm[System.Run.TmpNowStation], 360);
-                LCD_PutCHString(88, 48, Number[System.Run.TmpNowStation], 0);
+                Images(4, 2, 120, 4, CHzm[System.Run.KEYSelect], 360);
+                LCD_PutCHString(88, 48, Number[System.Run.KEYSelect], 0);
             }
             else if (System.Run.TIM2Flag == 2)
             {

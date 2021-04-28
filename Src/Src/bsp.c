@@ -1,4 +1,5 @@
 #include "bsp.h"
+#include "mcp23s17.h"
 
 u32           TimingDelay;
 u32           DispDelay = 0;
@@ -109,6 +110,8 @@ void GPIO_Configuration(void)
     LCD_IO_Config();
     /* 初始化按键相关的IO*/
     KeyLed_IO_Config();
+    /* MCP23S17 IO接口 初始化*/
+    MCP23S17_Configuration();
     /* 其他的一些IO*/
     // MIC继电器开关	交叉
     // DJC PB8  CROSSC PB9
@@ -371,16 +374,16 @@ void Bsp_Init(void)
     clear(0, 0, 127, 63);
     LCD_DIS_MAIN();
 
-    // AMC1_OUTPUT_H();
+    AMC1_OUTPUT_H();
 
-    // for (i = 0; i < 5; i++)
-    // {
-    //     _delay_ms(5);
-    //     WDI_CLR();  //清MAX813；使MCU控制AMC有效;
-    // }
+    for (i = 0; i < 5; i++)
+    {
+        _delay_ms(5);
+        WDI_CLR();  //清MAX813；使MCU控制AMC有效;
+    }
 
-    // WDI_CLR();  //清MAX813；使MCU控制AMC有效;
-    // CLR_MANGB();
+    WDI_CLR();  //清MAX813；使MCU控制AMC有效;
+    CLR_MANGB();
 
     // TIM5_Open();
     // IWDG_Configuration();

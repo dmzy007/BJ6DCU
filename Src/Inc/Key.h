@@ -3,7 +3,7 @@
 
 #include "stm32f10x.h"
 
-#if 0
+#if 1
 //有键按下输入（PC7）
 #define ZLG7289A_KEY_PIN GPIO_Pin_7
 #define ZLG7289A_KEY_PORT GPIOC
@@ -14,7 +14,7 @@
 #endif
 #define ZLG7289A_KEYin GPIO_ReadInputDataBit(ZLG7289A_KEY_PORT, ZLG7289A_KEY_PIN)
 
-#if 0
+#if 1
 //模拟SPI数据输入输出口为：ZLG7289A_DIO（PC6）
 #define ZLG7289A_DIO_DIR_OUT() \
     GPIOC->CRL &= 0xf0ffffff;  \
@@ -35,7 +35,7 @@
     GPIOB->CRH |= 0x40000000;
 #endif
 
-#if 0
+#if 1
 #define ZLG7289A_DIO_PIN GPIO_Pin_6
 #define ZLG7289A_DIO_PORT GPIOC
 #else
@@ -46,7 +46,7 @@
 #define ZLG7289A_DIO_OUTPUT_H() GPIO_SetBits(ZLG7289A_DIO_PORT, ZLG7289A_DIO_PIN)
 #define ZLG7289A_DIO_OUTPUT_L() GPIO_ResetBits(ZLG7289A_DIO_PORT, ZLG7289A_DIO_PIN)
 
-#if 0
+#if 1
 #define ZLG7289A_RST_PIN GPIO_Pin_10
 #define ZLG7289A_RST_PORT GPIOD
 #else
@@ -56,7 +56,7 @@
 #define ZLG7289A_RST_OUTPUT_H() GPIO_SetBits(ZLG7289A_RST_PORT, ZLG7289A_RST_PIN)
 #define ZLG7289A_RST_OUTPUT_L() GPIO_ResetBits(ZLG7289A_RST_PORT, ZLG7289A_RST_PIN)
 
-#if 0
+#if 1
 #define ZLG7289A_CS_PIN GPIO_Pin_14
 #define ZLG7289A_CS_PORT GPIOD
 #else
@@ -66,7 +66,7 @@
 #define ZLG7289A_CS_OUTPUT_H() GPIO_SetBits(ZLG7289A_CS_PORT, ZLG7289A_CS_PIN)
 #define ZLG7289A_CS_OUTPUT_L() GPIO_ResetBits(ZLG7289A_CS_PORT, ZLG7289A_CS_PIN)
 
-#if 0
+#if 1
 #define ZLG7289A_CLK_PIN GPIO_Pin_12
 #define ZLG7289A_CLK_PORT GPIOD
 #else
