@@ -351,7 +351,10 @@ void Keyfunction(u8 KeyID)
         {
             if ((System.SystemInfo.DCUMatser == 1) && (System.SystemInfo.PauseStatus == 1))
             {
-                CAN_SendZhuBeiCMD(0x00, (System.SystemInfo.Matser == 1) ? 1 : 6, 0x00, 0x00, (System.SystemInfo.Matser == 1) ? 6 : 1, 0x00, 0x00);
+                if (System.SystemInfo.Matser != System.SystemInfo.COMMatser)
+                {
+                    CAN_SendZhuBeiCMD(0x00, (System.SystemInfo.Matser == 1) ? 1 : 6, 0x00, 0x00, (System.SystemInfo.Matser == 1) ? 6 : 1, 0x00, 0x00);
+                }
             }
         }
         break;

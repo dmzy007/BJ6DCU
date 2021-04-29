@@ -334,12 +334,14 @@ void CAN_ReciverSysInfoCMD(uint8_t *Data)
     if (ComLED)
     {
         ComLED = 0;
-        System.SystemInfo.KeyLedStatus &= ~KEY11LED;
+        // System.SystemInfo.KeyLedStatus &= ~KEY11LED;
+        WriteLED(7, 0);
     }
     else
     {
         ComLED = 1;
-        System.SystemInfo.KeyLedStatus |= KEY11LED;
+        // System.SystemInfo.KeyLedStatus |= KEY11LED;
+        WriteLED(7, 1);
     }
 
     /***************************
@@ -1201,24 +1203,18 @@ void CAN_Reciver_data_Analyse(void)
                         if (System.SystemInfo.COMMatser != 1)
                         {
                             System.SystemInfo.COMMatser = 1;
-                            if ((System.Screen.MainScreen == 0) && (System.Screen.FuScreen == 0))
-                            {
-                                LCD_PutCHString(0, 4, CHinf[System.SystemInfo.COMMatser - 1], 0);
-                            }
                         }
-                        System.SystemInfo.KeyLedStatus |= KEY9LED;
+                        // System.SystemInfo.KeyLedStatus |= KEY9LED;
+                        WriteLED(5, 1);
                     }
                     else
                     {
                         if (System.SystemInfo.COMMatser != 2)
                         {
                             System.SystemInfo.COMMatser = 2;
-                            if ((System.Screen.MainScreen == 0) && (System.Screen.FuScreen == 0))
-                            {
-                                LCD_PutCHString(0, 4, CHinf[System.SystemInfo.COMMatser - 1], 0);
-                            }
                         }
-                        System.SystemInfo.KeyLedStatus &= ~KEY9LED;
+                        // System.SystemInfo.KeyLedStatus &= ~KEY9LED;
+                        WriteLED(5, 0);
                     }
                 }
                 else  // MC2
@@ -1229,24 +1225,18 @@ void CAN_Reciver_data_Analyse(void)
                         if (System.SystemInfo.COMMatser != 1)
                         {
                             System.SystemInfo.COMMatser = 1;
-                            if ((System.Screen.MainScreen == 0) && (System.Screen.FuScreen == 0))
-                            {
-                                LCD_PutCHString(0, 4, CHinf[System.SystemInfo.COMMatser - 1], 0);
-                            }
                         }
-                        System.SystemInfo.KeyLedStatus |= KEY9LED;
+                        // System.SystemInfo.KeyLedStatus |= KEY9LED;
+                        WriteLED(5, 1);
                     }
                     else
                     {
                         if (System.SystemInfo.COMMatser != 2)
                         {
                             System.SystemInfo.COMMatser = 2;
-                            if ((System.Screen.MainScreen == 0) && (System.Screen.FuScreen == 0))
-                            {
-                                LCD_PutCHString(0, 4, CHinf[System.SystemInfo.COMMatser - 1], 0);
-                            }
                         }
-                        System.SystemInfo.KeyLedStatus &= ~KEY9LED;
+                        // System.SystemInfo.KeyLedStatus &= ~KEY9LED;
+                        WriteLED(5, 0);
                     }
                 }
                 break;
