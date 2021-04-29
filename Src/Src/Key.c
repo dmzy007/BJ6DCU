@@ -1,6 +1,7 @@
 #include "Key.h"
 #include "bsp.h"
 #include "can_drv.h"
+#include "mcp23s17.h"
 
 u8 Station         = 0;
 u8 DefaultValue[5] = {0, 0, 1, 0, 13};
@@ -1495,8 +1496,11 @@ void OK(void)
                     {
                         if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
                         {
-                            CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.SystemInfo.EndStation, System.Run.KEYSelect,
-                                                System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                            if (System.SystemInfo.BroadcastType != 1)
+                            {
+                                CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.SystemInfo.EndStation, System.Run.KEYSelect,
+                                                    System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                            }
 
                             System.Screen.MainScreen = 0;
                             System.Screen.FuScreen   = 0;
@@ -1534,8 +1538,11 @@ void OK(void)
                 {
                     if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
                     {
-                        CAN_SendLineInfoCMD(System.Run.KEYSelect, System.SystemInfo.EndStation, System.SystemInfo.NowStation,
-                                            System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                        if (System.SystemInfo.BroadcastType != 1)
+                        {
+                            CAN_SendLineInfoCMD(System.Run.KEYSelect, System.SystemInfo.EndStation, System.SystemInfo.NowStation,
+                                                System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                        }
                     }
 
                     System.Screen.MainScreen = 0;
@@ -1571,8 +1578,11 @@ void OK(void)
                 {
                     if ((System.Run.KEYSelect <= MAXSTA) && (System.Run.KEYSelect > 0))
                     {
-                        CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.Run.KEYSelect, System.SystemInfo.NowStation,
-                                            System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                        if (System.SystemInfo.BroadcastType != 1)
+                        {
+                            CAN_SendLineInfoCMD(System.SystemInfo.StartStation, System.Run.KEYSelect, System.SystemInfo.NowStation,
+                                                System.SystemInfo.LineNo, System.SystemInfo.ShangXiaxing);
+                        }
                     }
 
                     System.Screen.MainScreen = 0;

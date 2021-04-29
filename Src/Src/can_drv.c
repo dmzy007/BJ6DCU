@@ -415,11 +415,13 @@ void CAN_ReciverSysInfoCMD(uint8_t *Data)
         System.SystemInfo.BroadcastType = ((Data[4] & 0xF0) >> 4);
         if (System.SystemInfo.BroadcastType != 1)
         {
-            System.SystemInfo.KeyLedStatus &= ~KEY1LED;
+            // System.SystemInfo.KeyLedStatus &= ~KEY1LED;
+            WriteLED(1, 0);
         }
         else
         {
-            System.SystemInfo.KeyLedStatus |= KEY1LED;
+            // System.SystemInfo.KeyLedStatus |= KEY1LED;
+            WriteLED(1, 1);
         }
     }
 
